@@ -74,7 +74,7 @@ class JuliaBrot < Propane::App
   def julia_draw
     s = @edp_enable ? @julia_shader2 : @julia_shader
     s.set 'center', x_center, y_center
-    s.set 'zoom', @zoom
+    s.set 'zoom', zoom
     s.set 'juliaParam', @julia_param[0], @julia_param[1]
     shader s
     rect 0, 0, width, height
@@ -146,8 +146,8 @@ class JuliaBrot < Propane::App
     def mouse_clicked
       if @line_drawing
         # select ending point for julia loop
-        x_min = x_center - @x_range / 2.0
-        x_max = x_center + @x_range / 2.0
+        x_min = x_center - x_range / 2.0
+        x_max = x_center + x_range / 2.0
         y_min = y_center - @y_range / 2.0
         y_max = y_center + @y_range / 2.0
         @julia_loop_end = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
@@ -155,8 +155,8 @@ class JuliaBrot < Propane::App
         @center_x = 0
         @center_y = 0
         @x_range = DEFAULT
-        @y_range = @x_range * height / width
-        @zoom = @x_range / width
+        @y_range = x_range * height / width
+        @zoom = x_range / width
         @mode = :julia_loop
         @loop_time = 0
       else
@@ -173,16 +173,16 @@ class JuliaBrot < Propane::App
             @julia_loop_begin = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
           else
             # left click for static julia set
-            x_min = x_center - @x_range / 2.0
-            x_max = x_center + @x_range / 2.0
+            x_min = x_center - x_range / 2.0
+            x_max = x_center + x_range / 2.0
             y_min = y_center - @y_range / 2.0
             y_max = y_center + @y_range / 2.0
             @julia_param = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
             @center_x = 0
             @center_y = 0
             @x_range = DEFAULT
-            @y_range = @x_range * height / width
-            @zoom = @x_range / width
+            @y_range = x_range * height / width
+            @zoom = x_range / width
             @mode = :julia
           end
         end
