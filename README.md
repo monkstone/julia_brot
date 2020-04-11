@@ -5,26 +5,22 @@ Explore the mandelbrot and julia sets
 ## Requirements
 
 - `jdk-11.0.3+`
-- `jruby-9.2.9.0+`
-- `propane gem`
+- `jruby-9.2.11.1+`
+- `propane-3.5.0 gem`
 
-Currently you can ignore `illegal reflective access` warnings
+Since propane-3.5.0 reflective access warning should be gone
 
 ## Start
 
 Navigate to directory containing julia_brot.rb and run:
 
-`jruby julia_brot.rb`
+`jruby --dev julia_brot.rb` # --dev speeds startup
 
 ## Controls
 
-- Arrow keys: move image
-- Z: zoom in
-- X: zoom out
-- R: reset to standard mandelbrot
-- D: activate or deactivate double precision shaders. Higher precision is necessary to zoom farther than ~0.00005, but frame rate will drop (significantly! likely to single digits)
-- P: pause loop animation
-- Y: print to console the characteristics of current fractal
+Use control panel sliders to adjust center, zoom
+Use control panel button to reset to original Mandelbrot
+Use check box to adjust precision
 
 Mandelbrot View Only:
 - Left Click: view the julia set of the seed clicked in mandelbrot
