@@ -4,10 +4,12 @@
 
 require 'propane'
 
+Vect = Struct.new(:x, :y)
+MaxMin = Struct.new(:lox, :hix, :loy, :hiy)
 
 class JuliaBrot < Propane::App
   load_library :control_panel
-  attr_reader :control, :x_center, :scaling, :y_center, :zoom
+  attr_reader :center, :x_center, :scaling, :y_center, :zoom
   DEFAULT = 4.0
 
   def settings
@@ -31,20 +33,20 @@ class JuliaBrot < Propane::App
       c.slider :y_center, -3.0..3.0, 0.0
       c.checkbox :edp_enable, false
       c.menu :mode, %i[mandelbrot julia julia_loop]
-      @control = p
     end
+    @center = Vect.new(x_center, y_center)
     @y_range = scaling * height / width
     @zoom = scaling / width
 
-    @julia_param = [0.1994, -0.613]
+    @julia_param = Vect.new(0.1994, -0.613)
 
     # length of julia loop in frames
     @loop_length = 120
     # initialize some parameters
     # @mode = :mandelbrot
-    @line_start = [0, 0]
-    @julia_loop_begin = [0, 0]
-    @julia_loop_end = [0, 0]
+    @line_start = Vect.new(0, 0)
+    @julia_loop_begin = Vect.new(0, 0)
+    @julia_loop_end = Vect.new(0, 0)
     @loop_time = 0
     @paused = false
     @edp_enable = false
@@ -64,18 +66,27 @@ class JuliaBrot < Propane::App
 
   def mandelbrot_draw
     s = @edp_enable ? @mandelbrot_shader2 :  @mandelbrot_shader
-    s.set 'center', x_center, y_center
+    s.set 'center', center.x, center.y
     s.set 'zoom', zoom
     shader s
     rect 0, 0, width, height
     reset_shader
   end
 
+  def julia_maxmin
+    MaxMin.new(
+      center.x - scaling / 2.0,
+      center.x + scaling / 2.0,
+      center.y - @y_range / 2.0,
+      center.y + @y_range / 2.0
+    )
+  end
+
   def julia_draw
     s = @edp_enable ? @julia_shader2 : @julia_shader
-    s.set 'center', x_center, y_center
+    s.set 'center', center.x, center.y
     s.set 'zoom', zoom
-    s.set 'juliaParam', @julia_param[0], @julia_param[1]
+    s.set 'juliaParam', @julia_param.x, @julia_param.y
     shader s
     rect 0, 0, width, height
     reset_shader
@@ -83,14 +94,14 @@ class JuliaBrot < Propane::App
 
   def julia_loop_draw
     # calculate julia param with interpolation from julia_loop_begin to julia_loop_end using loop_time
-    real_dif = @julia_loop_end[0] - @julia_loop_begin[0]
-    imag_dif = @julia_loop_end[1] - @julia_loop_begin[1]
+    real_dif = @julia_loop_end.x - @julia_loop_begin.x
+    imag_dif = @julia_loop_end.y - @julia_loop_begin.y
     m = Math.sin((TWO_PI / (@loop_length * 2)) * @loop_time)
     real_offset = m * real_dif
     imag_offset = m * imag_dif
-    r = @julia_loop_begin[0] + real_offset
-    i = @julia_loop_begin[1] + imag_offset
-    @julia_param = [r, i]
+    r = @julia_loop_begin.x + real_offset
+    i = @julia_loop_begin.y + imag_offset
+    @julia_param = Vect.new(r, i)
     # increment time for next frame
     @loop_time = @loop_time.succ
     # reset loop time when cycle is complete
@@ -112,7 +123,7 @@ class JuliaBrot < Propane::App
     if @line_drawing
       stroke 100, 0, 0
       stroke_weight 3
-      line @line_start[0], @line_start[1], mouse_x, mouse_y
+      line @line_start.x, @line_start.y, mouse_x, mouse_y
       no_stroke
     end
   end
@@ -122,27 +133,26 @@ class JuliaBrot < Propane::App
     reset_parameters
     @mode = :mandelbrot
     @line_drawing = false
-    @line_start = [0, 0]
-    @julia_loop_begin = [0, 0]
-    @julia_loop_end = [0, 0]
+    @line_start = Vect.new(0, 0)
+    @julia_loop_begin = Vect.new(0, 0)
+    @julia_loop_end = Vect.new(0, 0)
     @loop_time = 0
     @pause = false
   end
 
-  def paused
-    # pause julia loop on frame
-    if @mode == :julia_loop
-      @mode = :julia
-      @pause = true
-    elsif @pause
-      @mode = :julia_loop
-      @pause = false
-    end
-  end
+  # def paused
+  #   # pause julia loop on frame
+  #   if @mode == :julia_loop
+  #     @mode = :julia
+  #     @pause = true
+  #   elsif @pause
+  #     @mode = :julia_loop
+  #     @pause = false
+  #   end
+  # end
 
   def reset_parameters
-    @center_x = 0
-    @center_y = 0
+    @center = Vect.new 0, 0
     @scaling = DEFAULT
     @y_range = scaling * height / width
     @zoom = scaling / width
@@ -151,11 +161,11 @@ class JuliaBrot < Propane::App
   def mouse_clicked
     if @line_drawing
       # select ending point for julia loop
-      x_min = x_center - scaling / 2.0
-      x_max = x_center + scaling / 2.0
-      y_min = y_center - @y_range / 2.0
-      y_max = y_center + @y_range / 2.0
-      @julia_loop_end = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
+      maxmin = julia_maxmin
+      @julia_loop_end = Vect.new(
+        map1d(mouse_x, (0...width), (maxmin.lox..maxmin.hix)),
+        map1d(mouse_y, (0..height), (maxmin.loy..maxmin.hiy))
+      )
       @line_drawing = false
       reset_parameters
       @zoom = scaling / width
@@ -167,19 +177,19 @@ class JuliaBrot < Propane::App
         if mouse_button == RIGHT
           # start line for julia loop
           @line_drawing = true
-          @line_start = [mouse_x, mouse_y]
-          x_min = x_center - @scaling / 2.0
-          x_max = x_center + @scaling / 2.0
-          y_min = y_center - @y_range / 2.0
-          y_max = y_center + @y_range / 2.0
-          @julia_loop_begin = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
-        elsif mouse_button == LEFT
+          @line_start = Vect.new mouse_x, mouse_y
+          maxmin = julia_maxmin
+          @julia_loop_begin = Vect.new(
+            map1d(mouse_x, (0...width), (maxmin.lox..maxmin.hix)),
+            map1d(mouse_y, (0..height), (maxmin.loy..maxmin.hiy))
+          )
+        else
           # left click for static julia set
-          x_min = x_center - scaling / 2.0
-          x_max = x_center + scaling / 2.0
-          y_min = y_center - @y_range / 2.0
-          y_max = y_center + @y_range / 2.0
-          @julia_param = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
+            maxmin = julia_maxmin
+          @julia_param = Vect.new(
+            map1d(mouse_x, (0...width), (maxmin.lox..maxmin.hix)),
+            map1d(mouse_y, (0..height), (maxmin.loy..maxmin.hiy))
+          )
           reset_parameters
           @mode = :julia
         end
