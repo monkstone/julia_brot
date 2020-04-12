@@ -21,6 +21,7 @@ Navigate to directory containing julia_brot.rb and run:
 Use control panel sliders to adjust center, zoom
 Use control panel button to reset to original Mandelbrot
 Use check box to adjust precision
+Use menu to select static julia
 
 Mandelbrot View Only:
 - Left Click: view the julia set of the seed clicked in mandelbrot

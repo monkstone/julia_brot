@@ -22,8 +22,8 @@ class JuliaBrot < Propane::App
       c.checkbox :edp_enable, false
       c.menu :mode, %i[mandelbrot julia julia_loop]
     end
-    @y_range = @x_range * height / width
-    @zoom = @x_range / width
+    @y_range = x_range * height / width
+    @zoom = x_range / width
 
     @julia_param = [0.1994, -0.613]
 
@@ -117,77 +117,75 @@ class JuliaBrot < Propane::App
     end
   end
 
-    def reset!
-      # reset to standard view mandelbrot
-      @center = [0.0, 0.0]
-      @x_range = DEFAULT
-      @y_range = x_range * height / width
-      @zoom = x_range / width
-      @mode = :mandelbrot
-      @line_drawing = false
-      @line_start = [0, 0]
-      @julia_loop_begin = [0, 0]
-      @julia_loop_end = [0, 0]
-      @loop_time = 0
+  def reset!
+    # reset to standard view mandelbrot
+    reset_parameters
+    @mode = :mandelbrot
+    @line_drawing = false
+    @line_start = [0, 0]
+    @julia_loop_begin = [0, 0]
+    @julia_loop_end = [0, 0]
+    @loop_time = 0
+    @pause = false
+  end
+
+  def paused
+    # pause julia loop on frame
+    if @mode == :julia_loop
+      @mode = :julia
+      @pause = true
+    elsif @pause
+      @mode = :julia_loop
       @pause = false
     end
+  end
 
-    def paused
-      # pause julia loop on frame
-      if @mode == :julia_loop
-        @mode = :julia
-        @pause = true
-      elsif @pause
-        @mode = :julia_loop
-        @pause = false
-      end
-    end
+  def reset_parameters
+    @center_x = 0
+    @center_y = 0
+    @x_range = DEFAULT
+    @y_range = x_range * height / width
+    @zoom = x_range / width
+  end
 
-    def mouse_clicked
-      if @line_drawing
-        # select ending point for julia loop
-        x_min = x_center - x_range / 2.0
-        x_max = x_center + x_range / 2.0
-        y_min = y_center - @y_range / 2.0
-        y_max = y_center + @y_range / 2.0
-        @julia_loop_end = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
-        @line_drawing = false
-        @center_x = 0
-        @center_y = 0
-        @x_range = DEFAULT
-        @y_range = x_range * height / width
-        @zoom = x_range / width
-        @mode = :julia_loop
-        @loop_time = 0
-      else
-        if @mode == :mandelbrot
-          # from mandelbrot use mouse to choose seed(s) for julia set(s)
-          if mouse_button == RIGHT
-            # start line for julia loop
-            @line_drawing = true
-            @line_start = [mouse_x, mouse_y]
-            x_min = x_center - @x_range / 2.0
-            x_max = x_center + @x_range / 2.0
-            y_min = y_center - @y_range / 2.0
-            y_max = y_center + @y_range / 2.0
-            @julia_loop_begin = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
-          else
-            # left click for static julia set
-            x_min = x_center - x_range / 2.0
-            x_max = x_center + x_range / 2.0
-            y_min = y_center - @y_range / 2.0
-            y_max = y_center + @y_range / 2.0
-            @julia_param = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
-            @center_x = 0
-            @center_y = 0
-            @x_range = DEFAULT
-            @y_range = x_range * height / width
-            @zoom = x_range / width
-            @mode = :julia
-          end
+  def mouse_clicked
+    if @line_drawing
+      # select ending point for julia loop
+      x_min = x_center - x_range / 2.0
+      x_max = x_center + x_range / 2.0
+      y_min = y_center - @y_range / 2.0
+      y_max = y_center + @y_range / 2.0
+      @julia_loop_end = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
+      @line_drawing = false
+      reset_parameters
+      @zoom = x_range / width
+      @mode = :julia_loop
+      @loop_time = 0
+    else
+      if @mode == :mandelbrot
+        # from mandelbrot use mouse to choose seed(s) for julia set(s)
+        if mouse_button == RIGHT
+          # start line for julia loop
+          @line_drawing = true
+          @line_start = [mouse_x, mouse_y]
+          x_min = x_center - @x_range / 2.0
+          x_max = x_center + @x_range / 2.0
+          y_min = y_center - @y_range / 2.0
+          y_max = y_center + @y_range / 2.0
+          @julia_loop_begin = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
+        elsif mouse_button == LEFT
+          # left click for static julia set
+          x_min = x_center - x_range / 2.0
+          x_max = x_center + x_range / 2.0
+          y_min = y_center - @y_range / 2.0
+          y_max = y_center + @y_range / 2.0
+          @julia_param = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
+          reset_parameters
+          @mode = :julia
         end
       end
     end
   end
+end
 
-  JuliaBrot.new
+JuliaBrot.new
