@@ -48,7 +48,6 @@ class JuliaBrot < Propane::App
     @julia_loop_begin = Vect.new(0, 0)
     @julia_loop_end = Vect.new(0, 0)
     @loop_time = 0
-    @paused = false
     @edp_enable = false
 
     # load shaders
