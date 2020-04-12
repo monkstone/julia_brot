@@ -7,39 +7,39 @@ require 'propane'
 
 class JuliaBrot < Propane::App
   load_library :control_panel
-  attr_reader :x_center, :x_range, :y_center, :zoom
+  attr_reader :control, :x_center, :scaling, :y_center, :zoom
   DEFAULT = 4.0
 
   def settings
     size 1000, 1000, P2D
-    control_panel do |c|
-      c.look_feel 'Nimbus'
-      c.title 'Control Panel'
-      c.button :reset! # see method below
-      c.slider :x_range, 1.0..10.0, DEFAULT
-      c.slider :x_center, -3.0..3.0, 0.0
-      c.slider :y_center, -3.0..3.0, 0.0
-      c.checkbox :edp_enable, false
-      c.menu :mode, %i[mandelbrot julia julia_loop]
-    end
-    @y_range = x_range * height / width
-    @zoom = x_range / width
-
-    @julia_param = [0.1994, -0.613]
-
-    # length of julia loop in frames
-    @loop_length = 120
   end
 
   def update_zoom
-    @zoom = x_range / width
-    @y_range = x_range * height / width
+    @zoom = scaling / width
+    @y_range = scaling * height / width
   end
 
   def setup
     sketch_title 'JuliaBrot'
     # frame_rate 20
+    control_panel do |c|
+      c.look_feel 'Nimbus'
+      c.title 'Control Panel'
+      c.button :reset! # see method below
+      c.slider :scaling, 1.0..10.0, DEFAULT
+      c.slider :x_center, -3.0..3.0, 0.0
+      c.slider :y_center, -3.0..3.0, 0.0
+      c.checkbox :edp_enable, false
+      c.menu :mode, %i[mandelbrot julia julia_loop]
+      @control = p
+    end
+    @y_range = scaling * height / width
+    @zoom = scaling / width
 
+    @julia_param = [0.1994, -0.613]
+
+    # length of julia loop in frames
+    @loop_length = 120
     # initialize some parameters
     # @mode = :mandelbrot
     @line_start = [0, 0]
@@ -143,22 +143,22 @@ class JuliaBrot < Propane::App
   def reset_parameters
     @center_x = 0
     @center_y = 0
-    @x_range = DEFAULT
-    @y_range = x_range * height / width
-    @zoom = x_range / width
+    @scaling = DEFAULT
+    @y_range = scaling * height / width
+    @zoom = scaling / width
   end
 
   def mouse_clicked
     if @line_drawing
       # select ending point for julia loop
-      x_min = x_center - x_range / 2.0
-      x_max = x_center + x_range / 2.0
+      x_min = x_center - scaling / 2.0
+      x_max = x_center + scaling / 2.0
       y_min = y_center - @y_range / 2.0
       y_max = y_center + @y_range / 2.0
       @julia_loop_end = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
       @line_drawing = false
       reset_parameters
-      @zoom = x_range / width
+      @zoom = scaling / width
       @mode = :julia_loop
       @loop_time = 0
     else
@@ -168,15 +168,15 @@ class JuliaBrot < Propane::App
           # start line for julia loop
           @line_drawing = true
           @line_start = [mouse_x, mouse_y]
-          x_min = x_center - @x_range / 2.0
-          x_max = x_center + @x_range / 2.0
+          x_min = x_center - @scaling / 2.0
+          x_max = x_center + @scaling / 2.0
           y_min = y_center - @y_range / 2.0
           y_max = y_center + @y_range / 2.0
           @julia_loop_begin = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
         elsif mouse_button == LEFT
           # left click for static julia set
-          x_min = x_center - x_range / 2.0
-          x_max = x_center + x_range / 2.0
+          x_min = x_center - scaling / 2.0
+          x_max = x_center + scaling / 2.0
           y_min = y_center - @y_range / 2.0
           y_max = y_center + @y_range / 2.0
           @julia_param = [map1d(mouse_x, (0...width), (x_min..x_max)), map1d(mouse_y, (0..height), (y_max..y_min))]
