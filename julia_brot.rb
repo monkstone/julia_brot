@@ -137,19 +137,7 @@ class JuliaBrot < Propane::App
     @julia_loop_begin = Vect.new(0, 0)
     @julia_loop_end = Vect.new(0, 0)
     @loop_time = 0
-    @pause = false
   end
-
-  # def paused
-  #   # pause julia loop on frame
-  #   if @mode == :julia_loop
-  #     @mode = :julia
-  #     @pause = true
-  #   elsif @pause
-  #     @mode = :julia_loop
-  #     @pause = false
-  #   end
-  # end
 
   def reset_parameters
     @center = Vect.new 0, 0
