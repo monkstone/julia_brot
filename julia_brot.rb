@@ -20,6 +20,7 @@ class JuliaBrot < Propane::App
   def update_zoom
     @zoom = scaling / width
     @y_range = scaling * height / width
+    @center = Vec2D.new(x_center, y_center)
   end
 
   def setup
