@@ -17,7 +17,7 @@ class JuliaBrot < Propane::App
     size 1000, 1000, P2D
   end
 
-  def update_zoom
+  def control_update
     @zoom = scaling / width
     @y_range = scaling * height / width
     @center = Vec2D.new(-x_center, y_center)
@@ -33,18 +33,14 @@ class JuliaBrot < Propane::App
       c.slider :x_center, -3.0..3.0, 0.0
       c.slider :y_center, -3.0..3.0, 0.0
       c.checkbox :hi_res, false
-      c.menu :mode, %i[mandelbrot julia julia_loop]
+      c.menu :mode, %w[mandelbrot julia julia_loop], 'mandelbrot'
     end
-    @center = Vec2D.new(x_center, y_center)
-    @y_range = scaling * height / width
-    @zoom = scaling / width
-
+    control_update
     @julia_param = Vec2D.new(0.1994, -0.613)
 
     # length of julia loop in frames
     @loop_length = 120
     # initialize some parameters
-    # @mode = :mandelbrot
     @line_start = Vec2D.new(0, 0)
     @julia_loop_begin = Vec2D.new(0, 0)
     @julia_loop_end = Vec2D.new(0, 0)
@@ -113,13 +109,13 @@ class JuliaBrot < Propane::App
   end
 
   def draw
-    update_zoom
+    control_update
     case @mode
-    when :mandelbrot
+    when 'mandelbrot'
       mandelbrot_draw
-    when :julia
+    when 'julia'
       julia_draw
-    when :julia_loop
+    when 'julia_loop'
       julia_loop_draw
     end
     # show where line for julia loop would be drawn when clicked
@@ -134,7 +130,7 @@ class JuliaBrot < Propane::App
   def reset!
     # reset to standard view mandelbrot
     reset_parameters
-    @mode = :mandelbrot
+    @mode = 'mandelbrot'
     @line_drawing = false
     @line_start = Vec2D.new(0, 0)
     @julia_loop_begin = Vec2D.new(0, 0)
@@ -160,10 +156,10 @@ class JuliaBrot < Propane::App
       @line_drawing = false
       reset_parameters
       @zoom = scaling / width
-      @mode = :julia_loop
+      @mode = 'julia_loop'
       @loop_time = 0
     else
-      if @mode == :mandelbrot
+      if @mode == 'mandelbrot'
         # from mandelbrot use mouse to choose seed(s) for julia set(s)
         if mouse_button == RIGHT
           # start line for julia loop
@@ -182,7 +178,7 @@ class JuliaBrot < Propane::App
             map1d(mouse_y, (0..height), (maxmin.loy..maxmin.hiy))
           )
           reset_parameters
-          @mode = :julia
+          @mode = 'julia'
         end
       end
     end
