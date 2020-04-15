@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# jscottpilgrim, control_panel by monkstone
+# From an original sketch by Jonathon Scott (aka jscottpilgrim)
+# modified by Martin Prout (aka monkstone) to have a control_panel gui
 
 require 'propane'
 
@@ -141,8 +142,8 @@ class JuliaBrot < Propane::App
   def reset_parameters
     @center = Vec2D.new 0, 0
     @scaling = DEFAULT
-    @y_range = scaling * height / width
-    @zoom = scaling / width
+    @y_range = DEFAULT * height / width
+    @zoom = DEFAULT / width
   end
 
   def mouse_clicked
